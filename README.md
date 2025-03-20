@@ -1,6 +1,8 @@
 **Forward Tag Remover Bot**
 ==========================
 
+# 🌟 Give it a star. 🌟
+
 🤖 **A Telegram Bot to Remove Forward Tags from Messages**
 🧑‍💻 Developed by [@Prime_Hritu](https://t.me/Prime_Hritu)
 📢 Stay updated via our [Developer Channel](https://t.me/Private_Bots)
