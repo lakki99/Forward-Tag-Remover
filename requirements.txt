@@ -1,4 +1,7 @@
 aiohttp==3.8.4
 Pyrogram==2.0.106
 python-dotenv==1.0.1
-TgCrypto
+TgCrypto==1.2.5
+pip>=23.3
+setuptools>=68.0
+wheel
