@@ -1,60 +1,47 @@
-from pyrogram import Client
-from config import BOT, API, WEB, OWNER
-from aiohttp import web
-import logging, os
+import asyncio
+from pyrogram import Client, filters
+from pyrogram.types import Message
+from pyrogram.errors import FloodWait
+from config import BOT_TOKEN, API_ID, API_HASH, OWNER
+from translation import TEXT, INLINE
 
-routes = web.RouteTableDef()
-logging.getLogger().setLevel(logging.INFO)
-logging.getLogger("pyrogram").setLevel(logging.ERROR)
-
-
-async def web_server():
-    web_app = web.Application(client_max_size=30000000)
-    web_app.add_routes(routes)
-    return web_app
+app = Client("cleaner_bot", bot_token=BOT_TOKEN, api_id=API_ID, api_hash=API_HASH)
 
 
-@routes.get("/", allow_head=True)
-async def root_route_handler(request):
-    file_path = os.path.join(os.path.dirname(__file__), "web", "index.html")
-    return web.FileResponse(file_path)
+@app.on_message(filters.command("start"))
+async def start(client: Client, msg: Message):
+    await msg.reply_text(
+        TEXT.START.format(msg.from_user.mention),
+        disable_web_page_preview=True,
+        reply_markup=INLINE.START_BTN
+    )
 
-
-class Private_Bots(Client):
-
-    def __init__(self):
-        super().__init__(
-            "Forward-Tag-Remover",
-            API.ID,
-            API.HASH,
-            bot_token=BOT.TOKEN,
-            plugins=dict(root="plugins"),
-            workers=16,
+    # Send owner alert
+    try:
+        await client.send_message(
+            OWNER.ID,
+            f"🚀 Bot started by [{msg.from_user.first_name}](tg://user?id={msg.from_user.id})"
         )
-
-    async def start(self):
-        await super().start()
-        me = await self.get_me()
-        if me.username:
-            BOT.USERNAME = f"@{me.username}"
-        self.mention = me.mention
-        self.username = me.username
-        await self.send_message(
-            chat_id=int(OWNER.ID),
-            text=f"{me.first_name} ✅✅ BOT started successfully ✅✅",
-        )
-        app = web.AppRunner(await web_server())
-        await app.setup()
-        bind_address = "0.0.0.0"
-        self.site = web.TCPSite(app, bind_address, WEB.PORT)
-        await self.site.start()
-        logging.info(f"{me.first_name} ✅✅ BOT started successfully ✅✅")
-
-    async def stop(self, *args):
-        await self.site.stop()
-        await super().stop()
-        logging.info("Bot Stopped 🙄")
-        os.remove("Forward-Tag-Remover.session")
+    except Exception as e:
+        print("Owner alert failed:", e)
 
 
-Private_Bots().run()
+@app.on_message(
+    (filters.channel & filters.forwarded)
+    | (filters.private & filters.incoming)
+    | (filters.group & filters.forwarded)
+)
+async def remove(client: Client, msg: Message):
+    try:
+        if msg.media and not msg.video_note and not msg.sticker:
+            await msg.copy(msg.chat.id, caption=msg.caption or None)
+        else:
+            await msg.copy(msg.chat.id)
+        await msg.delete()
+    except FloodWait as e:
+        await asyncio.sleep(e.value)
+
+
+if __name__ == "__main__":
+    print("Bot is running...")
+    app.run()
