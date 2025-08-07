@@ -16,6 +16,7 @@ class INLINE:
         [
             [InlineKeyboardButton(TEXT.DEVELOPER, url=f"tg://user?id={OWNER.ID}")],
             [InlineKeyboardButton(TEXT.UPDATES_CHANNEL, url="https://t.me/lakkisbots")],
-            [InlineKeyboardButton(TEXT.SOURCE_CODE, url="https://github.com/lakki99/Forward-Tag-Remover")],
+            [InlineKeyboardButton(TEXT.SOURCE_CODE, url="https://github.com")],
         ]
     )
+
